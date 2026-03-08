@@ -59,6 +59,12 @@ def find_repo_root(cwd: Path | None = None) -> Path:
     raise GitDiscoveryError("diff2tweet must be run inside a git repository.")
 
 
+def get_head_sha(repo_root: Path) -> str:
+    """Return the current HEAD SHA for the repository."""
+
+    return _run_git_command(repo_root, "rev-parse", "HEAD").strip()
+
+
 def _resolve_commit_range(repo_root: Path, config: RuntimeConfig) -> str:
     last_processed_sha = _read_last_processed_sha(repo_root / config.output_folder / _RUN_LOG_NAME)
     if last_processed_sha:

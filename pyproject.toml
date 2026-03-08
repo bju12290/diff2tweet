@@ -9,11 +9,15 @@ description = "Generate tweet drafts from git diffs and commit context."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "openai>=1,<2",
     "pydantic>=2,<3",
     "pydantic-settings>=2,<3",
     "PyYAML>=6,<7",
     "typer>=0.12,<1",
 ]
+
+[project.scripts]
+diff2tweet = "difftotweet.cli:app"
 
 [project.optional-dependencies]
 dev = [

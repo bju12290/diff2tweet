@@ -22,7 +22,25 @@ forced_hashtags:
 character_limit: 280
 
 # First-run fallback when no prior run log exists.
-lookback_commits: 5
+lookback_commits: 1
+
+# Max README.md characters to include as context. Set to 0 to exclude it.
+readme_max_chars: 2000
+
+# Max total context characters passed into the LLM prompt.
+context_max_chars: 12000
+
+# Diff files or paths to exclude from prompt context before budgeting.
+diff_ignore_patterns:
+  - "*.lock"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "poetry.lock"
+  - "Pipfile.lock"
+  - "*.min.js"
+  - "*.min.css"
+  - "dist/**"
+  - "build/**"
 
 # Directory where generated markdown drafts and logs should be written.
 output_folder: .diff2tweet

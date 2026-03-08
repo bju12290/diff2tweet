@@ -45,7 +45,6 @@ Git commits/diffs + optional NOTES.md → LLM prompt → Tweet candidates → Ap
 ## Agent System (`agents/` directory)
 
 The `agents/` directory contains documentation for AI agent workflows on this project:
-- `agents/AGENTS.md` — Behavior/workflow rules for agents
 - `agents/SESSION_STATE.md` — Template for tracking current project state (update this each session)
 - `agents/ARCHITECTURE.md` — Key system design and file map (populate as code is written)
 - `agents/DECISIONS.md` — Important historical decisions (log decisions here as they are made)

@@ -28,6 +28,9 @@ class RuntimeConfig(BaseModel):
     forced_hashtags: list[str]
     character_limit: int
     lookback_commits: int
+    readme_max_chars: int
+    context_max_chars: int
+    diff_ignore_patterns: list[str]
     output_folder: Path
     provider_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None

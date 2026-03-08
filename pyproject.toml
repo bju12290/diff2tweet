@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "difftotweet"
+version = "0.1.0"
+description = "Generate tweet drafts from git diffs and commit context."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2,<3",
+    "pydantic-settings>=2,<3",
+    "PyYAML>=6,<7",
+    "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-cov>=5,<6",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

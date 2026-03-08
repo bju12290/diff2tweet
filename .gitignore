@@ -1,0 +1,17 @@
+# diff2tweet run artifacts (opt-in to commit by removing this line)
+.diff2tweet/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Test artifacts
+tests/.tmp/
+
+# Environment / secrets
+.env

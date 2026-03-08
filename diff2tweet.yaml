@@ -1,0 +1,28 @@
+# diff2tweet configuration
+# This file is intended to live in the root of the user's repo.
+
+# LLM provider to use for tweet generation.
+provider: openai
+
+# Model name for the selected provider.
+model: gpt-4.1-mini
+
+# Extra guidance appended to the base prompt.
+custom_instructions: |
+  Focus on concrete product or engineering wins.
+  Avoid generic phrases like "improved stability" unless the diff proves it.
+  Prefer specific, punchy language that a developer would actually post.
+
+# Hashtags that should always be included when they fit naturally.
+forced_hashtags:
+  - "#buildinpublic"
+  - "#devtools"
+
+# Target tweet length. Set higher if you want to allow longer drafts.
+character_limit: 280
+
+# First-run fallback when no prior run log exists.
+lookback_commits: 5
+
+# Directory where generated markdown drafts and logs should be written.
+output_folder: .diff2tweet

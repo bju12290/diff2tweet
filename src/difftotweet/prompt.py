@@ -9,9 +9,6 @@ from difftotweet.git import GitContext
 
 _BASE_PROMPT = """You write punchy, specific developer tweets about shipped code changes.
 
-Return exactly 3 tweet candidates as JSON with this shape:
-{"tweets": ["tweet 1", "tweet 2", "tweet 3"]}
-
 Rules:
 - Each tweet must stay within the configured character limit.
 - Be concrete about what changed; do not invent outcomes not supported by the context.
@@ -51,6 +48,10 @@ def build_prompt(
     hashtags_text = ", ".join(config.forced_hashtags) if config.forced_hashtags else "none"
     prompt_parts = [
         _BASE_PROMPT.strip(),
+        (
+            f"Return exactly {config.num_candidates} tweet candidates as JSON with this shape\n"
+            + '{"tweets": ["tweet 1", "tweet 2", "..."]}'
+        ),
         f"Character limit: {config.character_limit}",
         f"Forced hashtags: {hashtags_text}",
         f"Commit range: {git_context.commit_range}",

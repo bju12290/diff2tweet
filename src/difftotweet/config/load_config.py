@@ -27,6 +27,7 @@ class RuntimeConfig(BaseModel):
     custom_instructions: str
     forced_hashtags: list[str]
     character_limit: int
+    num_candidates: int
     lookback_commits: int
     readme_max_chars: int
     context_max_chars: int

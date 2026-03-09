@@ -5,9 +5,10 @@ from pathlib import Path
 import typer
 from pydantic import ValidationError
 
+from .artifacts import write_markdown
 from .config import load_config
 from .git import GitDiscoveryError, discover_git_context, find_repo_root
-from .logs import LogWriteError, write_run_entry
+from .logs import LogWriteError, current_utc_timestamp, write_approval_entry, write_run_entry
 from .notes import discover_notes
 from .prompt import build_prompt
 from .providers import ProviderError, get_provider
@@ -33,12 +34,34 @@ def generate_tweets() -> None:
         readme_text = discover_readme(config, cwd=repo_root)
         prompt_text = build_prompt(config, git_context, notes_text, readme_text)
         tweets = get_provider(config).generate_tweets(prompt_text, config)
-        write_run_entry(repo_root / config.output_folder, git_context, tweets)
+        output_folder = repo_root / config.output_folder
+        run_entry = write_run_entry(output_folder, git_context, tweets)
     except (GitDiscoveryError, LogWriteError, ProviderError, ValidationError, FileNotFoundError) as exc:
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(code=1) from exc
 
     typer.echo(_format_candidates_output(git_context.commit_range, tweets))
+    approvals = _prompt_for_approvals(len(tweets))
+    approval_timestamp = current_utc_timestamp()
+
+    try:
+        write_approval_entry(
+            output_folder,
+            run_entry.generation_timestamp,
+            approvals,
+            approval_timestamp,
+        )
+        write_markdown(
+            output_folder,
+            run_entry.generation_timestamp,
+            git_context.commit_range,
+            tweets,
+            approvals,
+            approval_timestamp,
+        )
+    except LogWriteError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
 
 
 def _format_candidates_output(commit_range: str, tweets: list[str]) -> str:
@@ -49,3 +72,10 @@ def _format_candidates_output(commit_range: str, tweets: list[str]) -> str:
     for index, tweet in enumerate(tweets, start=1):
         lines.append(f"{index}. {tweet}")
     return "\n".join(lines)
+
+
+def _prompt_for_approvals(tweet_count: int) -> dict[int, bool]:
+    approvals: dict[int, bool] = {}
+    for index in range(1, tweet_count + 1):
+        approvals[index] = typer.confirm(f"Approve tweet {index}?", prompt_suffix=" [y/n]: ")
+    return approvals

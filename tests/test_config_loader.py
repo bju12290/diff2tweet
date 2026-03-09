@@ -40,3 +40,29 @@ output_folder: .diff2tweet
             load_config(config_path, env_file=env_path)
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_load_config_reads_num_candidates_from_yaml():
+    case_dir = _TEST_TEMP_ROOT / f"config-num-candidates-{uuid.uuid4().hex}"
+    case_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        config_path = case_dir / "diff2tweet.yaml"
+        config_path.write_text(
+            """
+provider: openai
+model: gpt-4.1-mini
+num_candidates: 2
+output_folder: .diff2tweet
+""".strip(),
+            encoding="utf-8",
+        )
+
+        env_path = case_dir / ".env"
+        env_path.write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+
+        config = load_config(config_path, env_file=env_path)
+
+        assert config.num_candidates == 2
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)

@@ -38,10 +38,10 @@ class OpenAIProvider(BaseProvider):
                 },
             ],
         )
-        return _parse_tweets_response(response)
+        return _parse_tweets_response(response, config.num_candidates)
 
 
-def _parse_tweets_response(response: Any) -> list[str]:
+def _parse_tweets_response(response: Any, expected_count: int) -> list[str]:
     choices = getattr(response, "choices", None)
     if not choices:
         raise ProviderError("OpenAI returned no choices.")
@@ -69,7 +69,9 @@ def _parse_tweets_response(response: Any) -> list[str]:
         raise ProviderError("OpenAI response did not include a 'tweets' list.")
 
     cleaned = [tweet.strip() for tweet in tweets if isinstance(tweet, str) and tweet.strip()]
-    if len(cleaned) != 3:
-        raise ProviderError("OpenAI response must contain exactly 3 tweet candidates.")
+    if len(cleaned) != expected_count:
+        raise ProviderError(
+            f"OpenAI response must contain exactly {expected_count} tweet candidates."
+        )
 
     return cleaned

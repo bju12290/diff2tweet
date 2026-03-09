@@ -11,6 +11,7 @@ Secrets such as LLM API keys do not belong in YAML. Supply them through environm
 - `custom_instructions`: Extra prompt guidance added to the default tweet-writing prompt.
 - `forced_hashtags`: Hashtags the tool should try to preserve in generated drafts. Each entry must start with `#`.
 - `character_limit`: Maximum length for a generated tweet draft.
+- `num_candidates`: Number of tweet candidates to request and validate per run. Must be between `1` and `10`.
 - `lookback_commits`: First-run fallback commit count when no prior run log exists.
 - `readme_max_chars`: Maximum number of repo-root `README.md` characters to include in LLM context. Set `0` to exclude the README entirely.
 - `context_max_chars`: Maximum total characters reserved for README, commit messages, NOTES.md, and filtered diff content inside the LLM prompt.

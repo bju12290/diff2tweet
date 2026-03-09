@@ -21,6 +21,9 @@ forced_hashtags:
 # Target tweet length. Set higher if you want to allow longer drafts.
 character_limit: 280
 
+# Number of tweet candidates to generate per run.
+num_candidates: 3
+
 # First-run fallback when no prior run log exists.
 lookback_commits: 1
 

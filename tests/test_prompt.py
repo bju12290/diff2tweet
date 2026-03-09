@@ -31,6 +31,21 @@ def test_build_prompt_orders_context_by_priority_and_filters_diff_noise():
     assert "package-lock.json" not in prompt
     assert "src/app.py" in prompt
     assert "#buildinpublic" in prompt
+    assert "Return exactly 3 tweet candidates as JSON" in prompt
+
+
+def test_build_prompt_uses_configured_candidate_count():
+    config = _runtime_config(context_max_chars=1000, num_candidates=2)
+    git_context = GitContext(
+        repo_root=Path("."),
+        commit_range="abc..HEAD",
+        commit_messages=["Add prompt builder"],
+        diff_text="diff --git a/src/app.py b/src/app.py\n+code\n",
+    )
+
+    prompt = build_prompt(config, git_context, None, None)
+
+    assert "Return exactly 2 tweet candidates as JSON" in prompt
 
 
 def test_build_prompt_enforces_context_budget_in_priority_order():
@@ -52,13 +67,14 @@ def test_build_prompt_enforces_context_budget_in_priority_order():
     assert "## FILTERED DIFF" not in context_block
 
 
-def _runtime_config(*, context_max_chars: int) -> RuntimeConfig:
+def _runtime_config(*, context_max_chars: int, num_candidates: int = 3) -> RuntimeConfig:
     return RuntimeConfig(
         provider="openai",
         model="gpt-4.1-mini",
         custom_instructions="Stay sharp.",
         forced_hashtags=["#buildinpublic"],
         character_limit=280,
+        num_candidates=num_candidates,
         lookback_commits=5,
         readme_max_chars=2000,
         context_max_chars=context_max_chars,

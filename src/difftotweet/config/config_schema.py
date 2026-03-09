@@ -22,6 +22,7 @@ class DiffToTweetConfig(BaseModel):
     custom_instructions: str = Field(default="")
     forced_hashtags: list[str] = Field(default_factory=list)
     character_limit: int = Field(default=280, ge=1, le=10000)
+    num_candidates: int = Field(default=3, ge=1, le=10)
     lookback_commits: int = Field(default=5, ge=1)
     readme_max_chars: int = Field(default=2000, ge=0)
     context_max_chars: int = Field(default=12000, ge=1)

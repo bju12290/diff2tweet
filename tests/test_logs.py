@@ -30,13 +30,13 @@ def test_write_run_entry_appends_jsonl_entry_with_head_sha():
             diff_text="diff --git a/app.py b/app.py\n",
         )
 
-        run_log_path = write_run_entry(output_dir, git_context, ["one", "two", "three"])
-        payload = json.loads(run_log_path.read_text(encoding="utf-8").splitlines()[-1])
+        result = write_run_entry(output_dir, git_context, ["one", "two", "three"])
+        payload = json.loads(result.run_log_path.read_text(encoding="utf-8").splitlines()[-1])
 
         assert payload["last_processed_sha"] == head_sha
         assert payload["commit_range"] == "abc..HEAD"
         assert payload["tweets"] == ["one", "two", "three"]
-        assert payload["timestamp"]
+        assert payload["timestamp"] == result.generation_timestamp
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 

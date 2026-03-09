@@ -56,7 +56,9 @@ output_folder: .diff2tweet
             encoding="utf-8",
         )
 
+        approvals = iter([True, True, True])
         monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
         monkeypatch.chdir(nested_dir)
         result = _runner.invoke(app, [])
 
@@ -66,10 +68,103 @@ output_folder: .diff2tweet
         assert "2. Now turning committed diffs into tweet candidates automatically." in result.stdout
 
         run_log_path = repo_dir / ".diff2tweet" / "run_log.jsonl"
-        payload = json.loads(run_log_path.read_text(encoding="utf-8").splitlines()[-1])
-        assert payload["commit_range"].endswith("..HEAD")
-        assert payload["tweets"][0] == "Shipped the first draft generator for diff2tweet."
-        assert payload["last_processed_sha"]
+        lines = run_log_path.read_text(encoding="utf-8").splitlines()
+        generation_payload = json.loads(lines[-2])
+        approval_payload = json.loads(lines[-1])
+        assert generation_payload["commit_range"].endswith("..HEAD")
+        assert generation_payload["tweets"][0] == "Shipped the first draft generator for diff2tweet."
+        assert generation_payload["last_processed_sha"]
+        assert approval_payload["type"] == "approval"
+        assert approval_payload["approvals"] == {"1": True, "2": True, "3": True}
+
+        artifact_path = repo_dir / ".diff2tweet" / "runs" / f"{generation_payload['timestamp'].replace(':', '-')}.md"
+        artifact_contents = artifact_path.read_text(encoding="utf-8")
+        assert "### Tweet 1 (approved)" in artifact_contents
+        assert "### Tweet 3 (approved)" in artifact_contents
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_cli_writes_mixed_approval_artifact(monkeypatch):
+    case_dir = (_TEST_TEMP_ROOT / f"cli-mixed-approval-{uuid.uuid4().hex}").resolve()
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "app.py", "print('one')\n", "Add app")
+        _commit_file(repo_dir, "app.py", "print('two')\n", "Update app")
+        (repo_dir / ".env").write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+        (repo_dir / "diff2tweet.yaml").write_text(
+            """
+provider: openai
+model: gpt-4.1-mini
+lookback_commits: 1
+output_folder: .diff2tweet
+""".strip(),
+            encoding="utf-8",
+        )
+
+        approvals = iter([True, False, True])
+        monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
+        monkeypatch.chdir(repo_dir)
+        result = _runner.invoke(app, [])
+
+        assert result.exit_code == 0
+        log_lines = (repo_dir / ".diff2tweet" / "run_log.jsonl").read_text(encoding="utf-8").splitlines()
+        generation_payload = json.loads(log_lines[-2])
+        approval_payload = json.loads(log_lines[-1])
+        assert approval_payload["approvals"] == {"1": True, "2": False, "3": True}
+
+        artifact_contents = (
+            repo_dir / ".diff2tweet" / "runs" / f"{generation_payload['timestamp'].replace(':', '-')}.md"
+        ).read_text(encoding="utf-8")
+        assert "### Tweet 1 (approved)" in artifact_contents
+        assert "### Tweet 2 (denied)" in artifact_contents
+        assert "### Tweet 3 (approved)" in artifact_contents
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_cli_writes_denied_artifact(monkeypatch):
+    case_dir = (_TEST_TEMP_ROOT / f"cli-deny-approval-{uuid.uuid4().hex}").resolve()
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "app.py", "print('one')\n", "Add app")
+        _commit_file(repo_dir, "app.py", "print('two')\n", "Update app")
+        (repo_dir / ".env").write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+        (repo_dir / "diff2tweet.yaml").write_text(
+            """
+provider: openai
+model: gpt-4.1-mini
+lookback_commits: 1
+output_folder: .diff2tweet
+""".strip(),
+            encoding="utf-8",
+        )
+
+        approvals = iter([False, False, False])
+        monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
+        monkeypatch.chdir(repo_dir)
+        result = _runner.invoke(app, [])
+
+        assert result.exit_code == 0
+        log_lines = (repo_dir / ".diff2tweet" / "run_log.jsonl").read_text(encoding="utf-8").splitlines()
+        generation_payload = json.loads(log_lines[-2])
+        approval_payload = json.loads(log_lines[-1])
+        assert approval_payload["approvals"] == {"1": False, "2": False, "3": False}
+
+        artifact_contents = (
+            repo_dir / ".diff2tweet" / "runs" / f"{generation_payload['timestamp'].replace(':', '-')}.md"
+        ).read_text(encoding="utf-8")
+        assert "### Tweet 1 (denied)" in artifact_contents
+        assert "### Tweet 2 (denied)" in artifact_contents
+        assert "### Tweet 3 (denied)" in artifact_contents
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 

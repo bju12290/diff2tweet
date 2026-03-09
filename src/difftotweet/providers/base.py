@@ -14,4 +14,4 @@ class BaseProvider(ABC):
 
     @abstractmethod
     def generate_tweets(self, prompt_text: str, config: RuntimeConfig) -> list[str]:
-        """Generate exactly three tweet candidates from the prepared prompt."""
+        """Generate exactly config.num_candidates tweet candidates from the prepared prompt."""

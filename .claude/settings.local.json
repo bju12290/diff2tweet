@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv\\\\Scripts\\\\python.exe -m pytest tests/test_providers.py tests/test_prompt.py -q 2>&1)",
+      "Bash(cd \"D:\\\\.webdev\\\\.bphdev\\\\difftotweet\" && \".venv/Scripts/python.exe\" -m pytest tests/test_providers.py tests/test_prompt.py -q 2>&1)",
+      "Bash(cd \"D:\\\\.webdev\\\\.bphdev\\\\difftotweet\" && \".venv/Scripts/python.exe\" -m pytest -q 2>&1)",
+      "Bash(cd \"D:\\\\.webdev\\\\.bphdev\\\\difftotweet\" && \".venv/Scripts/python.exe\" -m pytest tests/test_prompt.py -q 2>&1)"
+    ]
+  }
+}

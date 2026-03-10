@@ -13,5 +13,14 @@ venv/
 # Test artifacts
 tests/.tmp/
 
+# Batch test harness scratch clones and generated reports
+dev_tools/scratch/
+dev_tools/last_run.md
+dev_tools/last_eval.md
+dev_tools/last_eval.json
+
 # Environment / secrets
 .env
+
+# Personal notes
+leaving-off

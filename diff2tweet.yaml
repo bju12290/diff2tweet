@@ -5,7 +5,31 @@
 provider: openai
 
 # Model name for the selected provider.
-model: gpt-4.1-mini
+model: gpt-5.1
+
+# Small, structured context about the project for better tweet prompts.
+project_name: diff2tweet
+
+# What the project does and why it exists.
+project_summary: |
+  A CLI that turns recent committed git work into tweet drafts so developers can
+  share concrete progress without staring at a blank compose box.
+
+# Who the project is for.
+project_audience: Developers building in public and maintaining code-heavy projects.
+
+# Current maturity of the project.
+project_stage: prototype
+
+# Voice the model should lean toward when drafting tweets.
+project_tone: technical
+
+# Domain vocabulary that should inform the model's framing.
+project_key_terms:
+  - CLI
+  - git workflow
+  - developer marketing
+  - open source
 
 # Extra guidance appended to the base prompt.
 custom_instructions: |
@@ -21,29 +45,66 @@ forced_hashtags:
 # Target tweet length. Set higher if you want to allow longer drafts.
 character_limit: 280
 
-# Number of tweet candidates to generate per run.
-num_candidates: 3
+# Number of tweet candidates to generate per run. Each candidate is generated
+# independently — higher values produce more diverse options at the cost of
+# additional API calls.
+num_candidates: 1
 
 # First-run fallback when no prior run log exists.
-lookback_commits: 1
+lookback_commits: 5
 
-# Max README.md characters to include as context. Set to 0 to exclude it.
-readme_max_chars: 2000
+# Minimum subject-line length for a commit message to be included in prompt context.
+# Exact-match low-signal subjects like "fix" and "wip" are still dropped separately.
+commit_subject_min_chars: 20
+
+# Max README.md characters to include as extra context. Set to 0 to exclude it.
+# Structured project fields above are the preferred default.
+readme_max_chars: 0
 
 # Max total context characters passed into the LLM prompt.
 context_max_chars: 12000
+
+# Max number of documentation diff sections (docs/**, *.md, *.rst) to include.
+# Prevents doc-sweep commits from flooding the context budget.
+max_doc_diff_sections: 3
+
+# Max characters per individual documentation diff section (docs/**, *.md, *.rst).
+# Prevents a single large doc file from consuming the entire diff budget.
+max_doc_section_chars: 1000
 
 # Diff files or paths to exclude from prompt context before budgeting.
 diff_ignore_patterns:
   - "*.lock"
   - "package-lock.json"
+  - "pnpm-lock.yaml"
   - "yarn.lock"
   - "poetry.lock"
   - "Pipfile.lock"
+  - "go.sum"
+  - "go.mod"
   - "*.min.js"
   - "*.min.css"
+  - "*.d.ts"
   - "dist/**"
   - "build/**"
+  - ".github/**"
+  - "CHANGELOG.md"
+  - "CHANGELOG"
+  - "CHANGES.md"
+  - "HISTORY.md"
+  - "release-notes.md"
+  - "release_notes.md"
+  - "test_*.py"
+  - "*_test.py"
+  - "*.test.js"
+  - "*.test.ts"
+  - "*.spec.js"
+  - "*.spec.ts"
+  - "*.vitest.ts"
+  - "tests/**"
+  - "test/**"
+  - "**/tests/**"
+  - "**/__tests__/**"
 
 # Directory where generated markdown drafts and logs should be written.
 output_folder: .diff2tweet

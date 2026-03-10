@@ -6,7 +6,7 @@ Feed project git commits, diffs, and a NOTES.md file to get candidate tweets out
 
 NOTES.md is not assumed to be a dedicated notes file, it is a dedicated file for this tool that gives the user the ability to feed optional context to the LLM that would not be detectable in commits and diffs.
 
-* CLI Command -> difftotweet
+* CLI Command -> diff2tweet
 * Later: GitHub Actions -> User drops a YAML file into their repo so every time they merge to main a drafted tweet automatically drops into their slack/discord webhook (or alternatively a simpler output, like a direct file write to the repo)
 * README as a Landing Page
   * HOOK: Side-by-side before and after image of a dry unreadable git diff next to a punchy engaging tweet the tool generated

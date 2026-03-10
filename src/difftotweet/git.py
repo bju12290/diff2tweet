@@ -111,8 +111,8 @@ def _resolve_lookback_range(repo_root: Path, lookback_commits: int) -> str:
 
 
 def _read_commit_messages(repo_root: Path, commit_range: str) -> list[str]:
-    log_output = _run_git_command(repo_root, "log", "--format=%B", commit_range)
-    return [line for line in log_output.splitlines() if line.strip()]
+    log_output = _run_git_command(repo_root, "log", "--format=%x00%B", commit_range)
+    return [msg.strip() for msg in log_output.split("\x00") if msg.strip()]
 
 
 def _run_git_command(repo_root: Path, *args: str) -> str:

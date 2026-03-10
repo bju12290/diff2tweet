@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, SecretStr, model_validator
@@ -24,13 +24,22 @@ class RuntimeConfig(BaseModel):
 
     provider: LlmProvider
     model: str
+    project_name: str
+    project_summary: str
+    project_audience: str
+    project_stage: Literal["prototype", "beta", "launched"]
+    project_tone: Literal["technical", "founder", "casual"]
+    project_key_terms: list[str]
     custom_instructions: str
     forced_hashtags: list[str]
     character_limit: int
     num_candidates: int
     lookback_commits: int
+    commit_subject_min_chars: int
     readme_max_chars: int
     context_max_chars: int
+    max_doc_diff_sections: int
+    max_doc_section_chars: int
     diff_ignore_patterns: list[str]
     output_folder: Path
     provider_api_key: SecretStr | None = None
@@ -66,6 +75,10 @@ def load_config(
         **yaml_config.model_dump(),
         **settings.model_dump(),
     }
+    extra_patterns = merged.pop("diff_ignore_patterns_extra", [])
+    if extra_patterns:
+        merged["diff_ignore_patterns"] = merged["diff_ignore_patterns"] + extra_patterns
+
     key_field = _PROVIDER_KEY_FIELDS[yaml_config.provider]
     merged["provider_api_key"] = merged.get(key_field)
 

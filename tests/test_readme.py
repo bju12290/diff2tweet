@@ -38,7 +38,7 @@ def test_discover_readme_returns_none_when_readme_is_absent():
     try:
         _init_git_repo(repo_dir)
 
-        assert discover_readme(_runtime_config(), cwd=nested_dir) is None
+        assert discover_readme(_runtime_config(readme_max_chars=4), cwd=nested_dir) is None
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 
@@ -58,16 +58,26 @@ def test_discover_readme_returns_none_when_config_disables_it():
         shutil.rmtree(case_dir, ignore_errors=True)
 
 
-def _runtime_config(*, readme_max_chars: int = 2000) -> RuntimeConfig:
+def _runtime_config(*, readme_max_chars: int = 0) -> RuntimeConfig:
     return RuntimeConfig(
         provider="openai",
         model="gpt-4.1-mini",
+        project_name="",
+        project_summary="",
+        project_audience="",
+        project_stage="prototype",
+        project_tone="technical",
+        project_key_terms=[],
         custom_instructions="",
         forced_hashtags=[],
         character_limit=280,
+        num_candidates=3,
         lookback_commits=5,
+        commit_subject_min_chars=20,
         readme_max_chars=readme_max_chars,
         context_max_chars=12000,
+        max_doc_diff_sections=3,
+        max_doc_section_chars=1000,
         diff_ignore_patterns=["*.lock", "dist/**"],
         output_folder=Path(".diff2tweet"),
         provider_api_key="test-key",

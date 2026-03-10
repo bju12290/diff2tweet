@@ -12,7 +12,6 @@ from .logs import LogWriteError, current_utc_timestamp, write_approval_entry, wr
 from .notes import discover_notes
 from .prompt import build_prompt
 from .providers import ProviderError, get_provider
-from .readme import discover_readme
 
 app = typer.Typer(
     add_completion=False,
@@ -31,8 +30,7 @@ def generate_tweets() -> None:
         config = load_config(repo_root / "diff2tweet.yaml")
         git_context = discover_git_context(config, cwd=repo_root)
         notes_text = discover_notes(cwd=repo_root)
-        readme_text = discover_readme(config, cwd=repo_root)
-        prompt_text = build_prompt(config, git_context, notes_text, readme_text)
+        prompt_text = build_prompt(config, git_context, notes_text)
         tweets = get_provider(config).generate_tweets(prompt_text, config)
         output_folder = repo_root / config.output_folder
         run_entry = write_run_entry(output_folder, git_context, tweets)

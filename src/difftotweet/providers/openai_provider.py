@@ -24,24 +24,27 @@ class OpenAIProvider(BaseProvider):
             ) from exc
 
         client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model=config.model,
-            response_format={"type": "json_object"},
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You generate tweet drafts from git context.",
-                },
-                {
-                    "role": "user",
-                    "content": prompt_text,
-                },
-            ],
-        )
-        return _parse_tweets_response(response, config.num_candidates)
+        tweets: list[str] = []
+        for _ in range(config.num_candidates):
+            response = client.chat.completions.create(
+                model=config.model,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You generate tweet drafts from git context.",
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt_text,
+                    },
+                ],
+            )
+            tweets.append(_parse_single_tweet(response))
+        return tweets
 
 
-def _parse_tweets_response(response: Any, expected_count: int) -> list[str]:
+def _parse_single_tweet(response: Any) -> str:
     choices = getattr(response, "choices", None)
     if not choices:
         raise ProviderError("OpenAI returned no choices.")
@@ -64,14 +67,8 @@ def _parse_tweets_response(response: Any, expected_count: int) -> list[str]:
     except json.JSONDecodeError as exc:
         raise ProviderError("OpenAI response was not valid JSON.") from exc
 
-    tweets = payload.get("tweets")
-    if not isinstance(tweets, list):
-        raise ProviderError("OpenAI response did not include a 'tweets' list.")
+    tweet = payload.get("tweet")
+    if not isinstance(tweet, str) or not tweet.strip():
+        raise ProviderError("OpenAI response did not include a 'tweet' string.")
 
-    cleaned = [tweet.strip() for tweet in tweets if isinstance(tweet, str) and tweet.strip()]
-    if len(cleaned) != expected_count:
-        raise ProviderError(
-            f"OpenAI response must contain exactly {expected_count} tweet candidates."
-        )
-
-    return cleaned
+    return tweet.strip()

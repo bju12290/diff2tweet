@@ -24,7 +24,7 @@ def test_get_provider_raises_for_unimplemented_provider():
         get_provider(config)
 
 
-def test_openai_provider_generates_three_tweets(monkeypatch):
+def test_openai_provider_returns_one_tweet_for_single_candidate(monkeypatch):
     captured: dict[str, object] = {}
 
     class _FakeCompletions:
@@ -33,9 +33,7 @@ def test_openai_provider_generates_three_tweets(monkeypatch):
             return SimpleNamespace(
                 choices=[
                     SimpleNamespace(
-                        message=SimpleNamespace(
-                            content='{"tweets": ["Tweet one", "Tweet two", "Tweet three"]}'
-                        )
+                        message=SimpleNamespace(content='{"tweet": "Tweet one"}')
                     )
                 ]
             )
@@ -47,22 +45,27 @@ def test_openai_provider_generates_three_tweets(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
 
-    tweets = OpenAIProvider().generate_tweets("prompt body", _runtime_config())
+    tweets = OpenAIProvider().generate_tweets("prompt body", _runtime_config(num_candidates=1))
 
-    assert tweets == ["Tweet one", "Tweet two", "Tweet three"]
+    assert tweets == ["Tweet one"]
     assert captured["api_key"] == "test-key"
     assert captured["model"] == "gpt-4.1-mini"
     assert captured["response_format"] == {"type": "json_object"}
     assert captured["messages"][1]["content"] == "prompt body"
 
 
-def test_openai_provider_validates_configured_candidate_count(monkeypatch):
+def test_openai_provider_makes_one_call_per_candidate(monkeypatch):
+    call_count = [0]
+
     class _FakeCompletions:
         def create(self, **kwargs):
+            call_count[0] += 1
             return SimpleNamespace(
                 choices=[
                     SimpleNamespace(
-                        message=SimpleNamespace(content='{"tweets": ["Tweet one", "Tweet two"]}')
+                        message=SimpleNamespace(
+                            content=f'{{"tweet": "Tweet {call_count[0]}"}}'
+                        )
                     )
                 ]
             )
@@ -73,18 +76,20 @@ def test_openai_provider_validates_configured_candidate_count(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
 
-    tweets = OpenAIProvider().generate_tweets("prompt body", _runtime_config(num_candidates=2))
+    tweets = OpenAIProvider().generate_tweets("prompt body", _runtime_config(num_candidates=3))
 
-    assert tweets == ["Tweet one", "Tweet two"]
+    assert len(tweets) == 3
+    assert call_count[0] == 3
+    assert tweets == ["Tweet 1", "Tweet 2", "Tweet 3"]
 
 
-def test_openai_provider_raises_when_candidate_count_is_wrong(monkeypatch):
+def test_openai_provider_raises_on_missing_tweet_key(monkeypatch):
     class _FakeCompletions:
         def create(self, **kwargs):
             return SimpleNamespace(
                 choices=[
                     SimpleNamespace(
-                        message=SimpleNamespace(content='{"tweets": ["Tweet one", "Tweet two"]}')
+                        message=SimpleNamespace(content='{"tweets": ["wrong shape"]}')
                     )
                 ]
             )
@@ -95,21 +100,30 @@ def test_openai_provider_raises_when_candidate_count_is_wrong(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
 
-    with pytest.raises(ProviderError, match="exactly 3 tweet candidates"):
+    with pytest.raises(ProviderError, match="did not include a 'tweet' string"):
         OpenAIProvider().generate_tweets("prompt body", _runtime_config())
 
 
-def _runtime_config(*, provider: str = "openai", num_candidates: int = 3) -> RuntimeConfig:
+def _runtime_config(*, provider: str = "openai", num_candidates: int = 1) -> RuntimeConfig:
     return RuntimeConfig(
         provider=provider,
         model="gpt-4.1-mini",
+        project_name="",
+        project_summary="",
+        project_audience="",
+        project_stage="prototype",
+        project_tone="technical",
+        project_key_terms=[],
         custom_instructions="",
         forced_hashtags=[],
         character_limit=280,
         num_candidates=num_candidates,
         lookback_commits=5,
-        readme_max_chars=2000,
+        commit_subject_min_chars=20,
+        readme_max_chars=0,
         context_max_chars=12000,
+        max_doc_diff_sections=3,
+        max_doc_section_chars=1000,
         diff_ignore_patterns=["*.lock", "dist/**"],
         output_folder=Path(".diff2tweet"),
         provider_api_key="test-key",

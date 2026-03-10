@@ -1,0 +1,74 @@
+# Curated repo list for batch prompt-filter testing.
+#
+# On first run, each repo is cloned (shallow) into dev_tools/scratch/.
+# Subsequent runs do a fast-forward pull so clones stay current.
+#
+# Supported per-repo config overrides: any field from DiffToTweetConfig
+# (see src/difftotweet/config/config_schema.py).
+# Most useful: lookback_commits, diff_ignore_patterns, commit_subject_min_chars, context_max_chars
+#
+# The project fields (project_name, project_summary, etc.) from the root
+# diff2tweet.yaml are used as-is; they describe diff2tweet itself, which is
+# intentional — we are testing the filter/prompt assembly logic, not
+# per-repo content accuracy.
+
+repos:
+  # Small Go CLI — clean commits, minimal noise
+  - url: https://github.com/charmbracelet/glow
+    name: charmbracelet/glow
+    config:
+      lookback_commits: 5
+
+  # Python HTTP library — stable project, semver-style release commits
+  - url: https://github.com/psf/requests
+    name: psf/requests
+    config:
+      lookback_commits: 8
+
+  # Python CLI framework (same one diff2tweet uses)
+  - url: https://github.com/tiangolo/typer
+    name: tiangolo/typer
+    config:
+      lookback_commits: 5
+
+  # Node.js — expect lock files and package noise; extra ignore patterns added
+  - url: https://github.com/expressjs/express
+    name: expressjs/express
+    config:
+      lookback_commits: 5
+      diff_ignore_patterns_extra:
+        - "node_modules/**"
+        - "test/**"
+        - "*.test.js"
+
+  # Rust CLI — large diffs per commit; bump context budget, pull fewer commits
+  - url: https://github.com/BurntSushi/ripgrep
+    name: BurntSushi/ripgrep
+    config:
+      lookback_commits: 3
+      context_max_chars: 16000
+
+  # Active Python web framework — high commit velocity, mixed subject quality
+  - url: https://github.com/tiangolo/fastapi
+    name: tiangolo/fastapi
+    config:
+      lookback_commits: 6
+      commit_subject_min_chars: 15
+
+# TypeScript ORM — heavy generated client code and migration files;
+  # stress-tests auto-generated header detection and *.prisma schema noise
+  - url: https://github.com/prisma/prisma
+    name: prisma/prisma
+    config:
+      lookback_commits: 5
+      diff_ignore_patterns_extra:
+        - "*.prisma"
+        - "generated/**"
+
+  # Solo Python dev (Simon Willison) — irregular commit cadence, mixed message
+  # quality, single maintainer workflow; closest proxy for your actual user
+  - url: https://github.com/simonw/datasette
+    name: simonw/datasette
+    config:
+      lookback_commits: 8
+      commit_subject_min_chars: 5

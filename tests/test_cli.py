@@ -42,6 +42,14 @@ def test_cli_prints_generated_candidates_and_writes_run_log(monkeypatch):
             """
 provider: openai
 model: gpt-4.1-mini
+project_name: diff2tweet
+project_summary: Turn committed diffs into tweet drafts.
+project_audience: Developers building in public.
+project_stage: beta
+project_tone: founder
+project_key_terms:
+  - CLI
+  - git workflow
 custom_instructions: Keep it specific.
 forced_hashtags:
   - "#buildinpublic"

@@ -11,7 +11,7 @@
 Install from source:
 
 ```bash
-git clone https://github.com/yourusername/difftotweet.git
+git clone https://github.com/bju12290/difftotweet.git
 cd difftotweet
 pip install -e .
 ```

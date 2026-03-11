@@ -2,19 +2,13 @@
 
 > Stop forgetting to tweet about your code wins.
 
-`diff2tweet` feeds your recent git commits and diffs to an LLM and generates a tweet draft. Run it after you push, approve or skip the candidate, and move on.
+`diff2tweet` feeds your recent git commits and diffs to an LLM and generates a tweet draft. Run it after you push, review the candidates, and move on.
 
 ---
 
 ## Install
 
-Requires Python 3.11+.
-
-```bash
-pip install difftotweet
-```
-
-Or install from source:
+Install from source:
 
 ```bash
 git clone https://github.com/yourusername/difftotweet.git
@@ -26,12 +20,13 @@ pip install -e .
 
 ## Setup
 
-**1. Add your OpenAI API key**
+**1. Add your API key**
 
 Create a `.env` file in your repo root (or export the variable):
 
 ```
 OPENAI_API_KEY=sk-...
+# or ANTHROPIC_API_KEY, GEMINI_API_KEY
 ```
 
 **2. Add a config file**
@@ -39,7 +34,8 @@ OPENAI_API_KEY=sk-...
 Create `diff2tweet.yaml` in your repo root. Minimal config:
 
 ```yaml
-model: gpt-5.1
+provider: openai
+model: gpt-4o
 
 project_name: your-project
 project_summary: One sentence about what your project does.
@@ -62,10 +58,9 @@ diff2tweet
 
 The tool will:
 1. Find your `diff2tweet.yaml` and `.env` at the repo root
-2. Pull your recent committed changes
-3. Generate a tweet candidate
-4. Ask you to approve (`y`) or skip (`n`)
-5. Save the result to `.diff2tweet/`
+2. Pull your recent committed changes since the last run
+3. Generate tweet candidates
+4. Save the result to `.diff2tweet/`
 
 ---
 
@@ -79,7 +74,8 @@ Drop a `NOTES.md` in your repo root to give the LLM extra context that wouldn't 
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `model` | — | OpenAI model name (required) |
+| `provider` | `openai` | `openai`, `anthropic`, or `gemini` |
+| `model` | — | Model name for the selected provider (required) |
 | `project_name` | `""` | Project name for prompt context |
 | `project_summary` | `""` | What the project does |
 | `project_audience` | `""` | Who it's for |
@@ -89,15 +85,20 @@ Drop a `NOTES.md` in your repo root to give the LLM extra context that wouldn't 
 | `num_candidates` | `1` | Number of tweet drafts to generate |
 | `character_limit` | `280` | Max tweet length |
 | `lookback_commits` | `5` | Commits to include on first run |
+| `commit_subject_min_chars` | `20` | Min chars for a commit subject to be included |
+| `readme_max_chars` | `0` | Max README.md chars to include as context |
 | `forced_hashtags` | `[]` | Hashtags always included when they fit |
 | `custom_instructions` | `""` | Extra guidance appended to the prompt |
 | `context_max_chars` | `12000` | Max characters of context sent to the LLM |
+| `max_doc_diff_sections` | `3` | Max documentation diff sections to include |
+| `max_doc_section_chars` | `1000` | Max chars per individual doc diff section |
+| `diff_ignore_patterns` | (list) | Glob patterns to exclude from diff context |
 | `output_folder` | `.diff2tweet` | Where logs and drafts are saved |
 
 ---
 
 ## Output
 
-Each run writes a markdown artifact to `.diff2tweet/runs/` with the tweet candidates and your approval decisions. Runs are also logged to `.diff2tweet/run_log.jsonl` so subsequent runs only pick up new commits.
+Each run writes a markdown artifact to `.diff2tweet/runs/` with the tweet candidates. Runs are also logged to `.diff2tweet/run_log.jsonl` so subsequent runs only pick up new commits.
 
 Add `.diff2tweet/` to your `.gitignore`, or commit it if you want a record of your tweet history.

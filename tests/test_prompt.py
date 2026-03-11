@@ -340,6 +340,7 @@ def _runtime_config(
             ".github/**",
         ],
         output_folder=Path(".diff2tweet"),
+        auto_tweet=False,
         provider_api_key="test-key",
         openai_api_key="test-key",
     )

@@ -39,7 +39,7 @@ def generate_tweets() -> None:
         raise typer.Exit(code=1) from exc
 
     typer.echo(_format_candidates_output(git_context.commit_range, tweets))
-    approvals = _prompt_for_approvals(len(tweets))
+    approvals = _prompt_for_approvals(len(tweets), config.auto_tweet)
     approval_timestamp = current_utc_timestamp()
 
     try:
@@ -72,8 +72,13 @@ def _format_candidates_output(commit_range: str, tweets: list[str]) -> str:
     return "\n".join(lines)
 
 
-def _prompt_for_approvals(tweet_count: int) -> dict[int, bool]:
+def _prompt_for_approvals(tweet_count: int, auto_tweet: bool) -> dict[int, bool]:
     approvals: dict[int, bool] = {}
     for index in range(1, tweet_count + 1):
-        approvals[index] = typer.confirm(f"Approve tweet {index}?", prompt_suffix=" [y/n]: ")
+        if auto_tweet:
+            approvals[index] = typer.confirm(f"Approve tweet {index}?", prompt_suffix=" [y/n]: ")
+        else:
+            # Temporarily auto-approve all tweets when not auto-tweeting.
+            # Later we can use this for auto-tweet confirmation.
+            approvals[index] = True
     return approvals

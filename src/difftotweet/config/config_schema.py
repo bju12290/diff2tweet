@@ -86,6 +86,7 @@ class DiffToTweetConfig(BaseModel):
     )
     diff_ignore_patterns_extra: list[str] = Field(default_factory=list)
     output_folder: Path = Field(default=Path(".diff2tweet"))
+    auto_tweet: bool = Field(default=False)
 
     @field_validator("forced_hashtags")
     @classmethod

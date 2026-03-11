@@ -126,6 +126,7 @@ def _runtime_config(*, provider: str = "openai", num_candidates: int = 1) -> Run
         max_doc_section_chars=1000,
         diff_ignore_patterns=["*.lock", "dist/**"],
         output_folder=Path(".diff2tweet"),
+        auto_tweet=False,
         provider_api_key="test-key",
         openai_api_key="test-key",
         anthropic_api_key="test-key" if provider == "anthropic" else None,

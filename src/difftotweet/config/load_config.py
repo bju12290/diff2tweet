@@ -42,6 +42,7 @@ class RuntimeConfig(BaseModel):
     max_doc_section_chars: int
     diff_ignore_patterns: list[str]
     output_folder: Path
+    auto_tweet: bool
     provider_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
@@ -50,7 +51,8 @@ class RuntimeConfig(BaseModel):
     @model_validator(mode="after")
     def validate_selected_provider_has_key(self) -> "RuntimeConfig":
         key_field = _PROVIDER_KEY_FIELDS[self.provider]
-        if getattr(self, key_field) is None:
+        val = getattr(self, key_field)
+        if val is None or (isinstance(val, SecretStr) and not val.get_secret_value()):
             raise ValueError(
                 f"Provider '{self.provider}' requires the {key_field.upper()} environment variable"
             )
@@ -75,6 +77,10 @@ def load_config(
         **yaml_config.model_dump(),
         **settings.model_dump(),
     }
+    # Ensure auto_tweet is present even if it was defaulted in DiffToTweetConfig
+    if "auto_tweet" not in merged:
+        merged["auto_tweet"] = yaml_config.auto_tweet
+
     extra_patterns = merged.pop("diff_ignore_patterns_extra", [])
     if extra_patterns:
         merged["diff_ignore_patterns"] = merged["diff_ignore_patterns"] + extra_patterns

@@ -60,6 +60,7 @@ context_max_chars: 200
 diff_ignore_patterns:
   - "*.lock"
 output_folder: .diff2tweet
+auto_tweet: true
 """.strip(),
             encoding="utf-8",
         )
@@ -109,6 +110,7 @@ provider: openai
 model: gpt-4.1-mini
 lookback_commits: 1
 output_folder: .diff2tweet
+auto_tweet: true
 """.strip(),
             encoding="utf-8",
         )
@@ -151,6 +153,7 @@ provider: openai
 model: gpt-4.1-mini
 lookback_commits: 1
 output_folder: .diff2tweet
+auto_tweet: true
 """.strip(),
             encoding="utf-8",
         )

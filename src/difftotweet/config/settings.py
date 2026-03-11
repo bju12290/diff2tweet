@@ -14,6 +14,7 @@ class ProviderSettings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        env_ignore_empty=True,
     )
 
     openai_api_key: SecretStr | None = Field(

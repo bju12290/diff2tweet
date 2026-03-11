@@ -29,6 +29,7 @@ forced_hashtags:
 character_limit: 280
 context_max_chars: 12000
 output_folder: .diff2tweet
+auto_tweet: false
 """.strip(),
             encoding="utf-8",
         )

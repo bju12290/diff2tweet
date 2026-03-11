@@ -80,6 +80,7 @@ def _runtime_config(*, readme_max_chars: int = 0) -> RuntimeConfig:
         max_doc_section_chars=1000,
         diff_ignore_patterns=["*.lock", "dist/**"],
         output_folder=Path(".diff2tweet"),
+        auto_tweet=False,
         provider_api_key="test-key",
         openai_api_key="test-key",
     )

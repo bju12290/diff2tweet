@@ -11,6 +11,7 @@ build/
 venv/
 .pytest_cache/
 .pytest_tmp/
+uv.lock
 
 # Test artifacts
 tests/.tmp/
@@ -25,6 +26,7 @@ dev_tools/last_eval.json
 .env
 
 # Agent stuff
+.claude
 AGENTS.md
 CLAUDE.md
 

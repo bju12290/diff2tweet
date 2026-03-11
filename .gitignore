@@ -9,6 +9,8 @@ dist/
 build/
 .venv/
 venv/
+.pytest_cache/
+.pytest_tmp/
 
 # Test artifacts
 tests/.tmp/
@@ -22,5 +24,12 @@ dev_tools/last_eval.json
 # Environment / secrets
 .env
 
+# Agent stuff
+AGENTS.md
+CLAUDE.md
+
 # Personal notes
 leaving-off
+
+# diff2tweet stuff
+NOTES.md

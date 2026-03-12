@@ -222,6 +222,53 @@ auto_tweet: false
         shutil.rmtree(case_dir, ignore_errors=True)
 
 
+@pytest.mark.parametrize("cli_args,confirm_return,expect_candidates", [
+    (["--force"], None, True),
+    ([], False, False),
+    ([], True, True),
+])
+def test_cli_handles_no_new_commits(monkeypatch, cli_args, confirm_return, expect_candidates):
+    case_dir = (_TEST_TEMP_ROOT / f"cli-no-new-{uuid.uuid4().hex}").resolve()
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "app.py", "print('one')\n", "Add app")
+        head_sha = _commit_file(repo_dir, "app.py", "print('two')\n", "Update app")
+
+        output_dir = repo_dir / ".diff2tweet"
+        output_dir.mkdir()
+        (output_dir / "run_log.jsonl").write_text(
+            json.dumps({"last_processed_sha": head_sha}) + "\n",
+            encoding="utf-8",
+        )
+
+        (repo_dir / ".env").write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+        (repo_dir / "diff2tweet.yaml").write_text(
+            """
+provider: openai
+model: gpt-4.1-mini
+lookback_commits: 1
+output_folder: .diff2tweet
+auto_tweet: false
+""".strip(),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr("diff2tweet.cli.get_provider", lambda config: _FakeProvider())
+        if confirm_return is not None:
+            monkeypatch.setattr("diff2tweet.cli.typer.confirm", lambda *args, **kwargs: confirm_return)
+        monkeypatch.chdir(repo_dir)
+        result = _runner.invoke(app, cli_args)
+
+        assert result.exit_code == 0
+        assert "No new commits since the last run." in result.output
+        assert ("diff2tweet candidates" in result.output) == expect_candidates
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
 def test_cli_prints_clean_error_when_config_is_missing(monkeypatch):
     case_dir = (_TEST_TEMP_ROOT / f"cli-missing-config-{uuid.uuid4().hex}").resolve()
     repo_dir = case_dir / "repo"

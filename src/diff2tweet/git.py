@@ -26,6 +26,14 @@ class InsufficientCommitsError(GitDiscoveryError):
         )
 
 
+class NoNewCommitsError(GitDiscoveryError):
+    """Raised when there are no new commits since the last processed run."""
+
+    def __init__(self, lookback_commits: int) -> None:
+        self.lookback_commits = lookback_commits
+        super().__init__("No new commits since the last run.")
+
+
 @dataclass(frozen=True)
 class GitContext:
     """Committed git data used to build the tweet generation prompt."""
@@ -40,13 +48,27 @@ def discover_git_context(
     config: RuntimeConfig,
     *,
     cwd: Path | None = None,
+    force_lookback: bool = False,
 ) -> GitContext:
     """Discover committed git context for the current repo."""
 
     repo_root = find_repo_root(cwd)
-    commit_range = _resolve_commit_range(repo_root, config)
+
+    used_run_log = False
+    if force_lookback:
+        commit_range = _resolve_lookback_range(repo_root, config.lookback_commits)
+    else:
+        last_sha = _read_last_processed_sha(repo_root / config.output_folder / _RUN_LOG_NAME)
+        if last_sha:
+            commit_range = f"{last_sha}..HEAD"
+            used_run_log = True
+        else:
+            commit_range = _resolve_lookback_range(repo_root, config.lookback_commits)
+
     commit_messages = _read_commit_messages(repo_root, commit_range)
     if not commit_messages:
+        if used_run_log:
+            raise NoNewCommitsError(config.lookback_commits)
         raise GitDiscoveryError(
             "No committed changes were found for the detected range. Make a new commit before running diff2tweet."
         )
@@ -75,13 +97,6 @@ def get_head_sha(repo_root: Path) -> str:
 
     return _run_git_command(repo_root, "rev-parse", "HEAD").strip()
 
-
-def _resolve_commit_range(repo_root: Path, config: RuntimeConfig) -> str:
-    last_processed_sha = _read_last_processed_sha(repo_root / config.output_folder / _RUN_LOG_NAME)
-    if last_processed_sha:
-        return f"{last_processed_sha}..HEAD"
-
-    return _resolve_lookback_range(repo_root, config.lookback_commits)
 
 
 def _read_last_processed_sha(run_log_path: Path) -> str | None:

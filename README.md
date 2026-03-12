@@ -79,6 +79,15 @@ The tool will:
 3. Generate tweet candidates
 4. Save the result to `.diff2tweet/`
 
+**No new commits since the last run**
+
+If you run `diff2tweet` without making new commits since the last run, it will tell you and ask whether to fall back to the configured `lookback_commits` window anyway:
+
+```
+No new commits since the last run.
+Generate a tweet using the last 5 commit(s) anyway? [y/N]:
+```
+
 **First run / not enough commits**
 
 On first run (no prior run log), `diff2tweet` looks back `lookback_commits` commits. If the repo has fewer commits than that, it tells you and asks whether to proceed with what's available:
@@ -88,7 +97,9 @@ Only 2 commit(s) available, but lookback_commits is set to 5.
 Use the last 2 commit(s) to generate a tweet anyway? [y/N]:
 ```
 
-Pass `--force` to skip the prompt and always use what's available — useful in CI or scripts:
+**Skipping prompts with `--force`**
+
+Pass `--force` to skip both of the above prompts — useful in CI or scripts:
 
 ```bash
 diff2tweet --force

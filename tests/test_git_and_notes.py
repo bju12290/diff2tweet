@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from diff2tweet.config import RuntimeConfig
-from diff2tweet.git import GitDiscoveryError, InsufficientCommitsError, discover_git_context
+from diff2tweet.git import GitDiscoveryError, InsufficientCommitsError, NoNewCommitsError, discover_git_context
 from diff2tweet.notes import discover_notes
 
 
@@ -64,7 +64,7 @@ def test_discover_git_context_falls_back_to_lookback_commits_on_first_run():
         shutil.rmtree(case_dir, ignore_errors=True)
 
 
-def test_discover_git_context_raises_clear_error_when_range_is_empty():
+def test_discover_git_context_raises_no_new_commits_error_when_run_log_is_at_head():
     case_dir = _TEST_TEMP_ROOT / f"git-empty-{uuid.uuid4().hex}"
     repo_dir = case_dir / "repo"
     repo_dir.mkdir(parents=True, exist_ok=False)
@@ -80,8 +80,36 @@ def test_discover_git_context_raises_clear_error_when_range_is_empty():
             encoding="utf-8",
         )
 
-        with pytest.raises(GitDiscoveryError, match="No committed changes were found"):
+        with pytest.raises(NoNewCommitsError) as exc_info:
             discover_git_context(_runtime_config(), cwd=repo_dir)
+
+        assert exc_info.value.lookback_commits == 5
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_discover_git_context_force_lookback_bypasses_run_log():
+    case_dir = _TEST_TEMP_ROOT / f"git-force-lookback-{uuid.uuid4().hex}"
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "one.txt", "one\n", "Commit one")
+        head_sha = _commit_file(repo_dir, "two.txt", "two\n", "Commit two")
+
+        # Run log is at HEAD — would normally raise NoNewCommitsError
+        output_dir = repo_dir / ".diff2tweet"
+        output_dir.mkdir()
+        (output_dir / "run_log.jsonl").write_text(
+            json.dumps({"last_processed_sha": head_sha}) + "\n",
+            encoding="utf-8",
+        )
+
+        context = discover_git_context(_runtime_config(lookback_commits=1), cwd=repo_dir, force_lookback=True)
+
+        assert context.commit_range.endswith("..HEAD")
+        assert context.commit_messages == ["Commit two"]
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 

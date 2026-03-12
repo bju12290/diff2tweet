@@ -2,10 +2,10 @@
 # This file is intended to live in the root of the user's repo.
 
 # LLM provider to use for tweet generation.
-provider: openai
+provider: anthropic
 
 # Model name for the selected provider.
-model: gpt-5.1
+model: claude-sonnet-4-6
 
 # Small, structured context about the project for better tweet prompts.
 project_name: diff2tweet

@@ -1,5 +1,9 @@
 # diff2tweet
 
+<p align="center">
+  <img src="docs/images/diff2tweet-demo.png" alt="diff2tweet turns messy diffs into tweet drafts" width="900" />
+</p>
+
 > Stop forgetting to tweet about your code wins.
 
 `diff2tweet` feeds your recent git commits and diffs to an LLM and generates a tweet draft. Run it after you push, review the candidates, and move on.

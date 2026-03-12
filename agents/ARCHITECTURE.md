@@ -4,21 +4,21 @@
 - `diff2tweet.yaml`: Root project config scaffold for provider selection, structured project context, model selection, prompt customization, tweet length, candidate count, git lookback, prompt budgeting, diff filtering, and output location
 - `docs/config.md`: Human-readable explanation of YAML config fields, including the structured project fields, `num_candidates`, and required provider env vars
 - `docs/DESIGN.md`: Product and milestone planning notes
-- `src/difftotweet/__init__.py`: Top-level package marker
-- `src/difftotweet/artifacts.py`: Markdown run-artifact writer for reviewed tweet candidates under `<output_folder>/runs/`
-- `src/difftotweet/cli.py`: Typer CLI entrypoint that auto-discovers repo context, builds prompts from structured project fields plus git/NOTES context, generates the configured number of tweet candidates, prompts for per-candidate approval, and persists both log entries and markdown artifacts
-- `src/difftotweet/git.py`: Git repo discovery, commit-range resolution, run-log lookup, committed diff/message collection, and HEAD SHA lookup for logging
-- `src/difftotweet/logs.py`: JSONL run-log writer for generation entries plus append-only approval entries
-- `src/difftotweet/notes.py`: Repo-root `NOTES.md` discovery that walks up from the current working directory
-- `src/difftotweet/prompt.py`: Prompt builder that renders a structured `## Project` section from config, then combines commit messages, NOTES, and filtered diff text under the configured context budget while requesting `config.num_candidates` tweets
-- `src/difftotweet/readme.py`: Repo-root `README.md` discovery with configurable truncation for optional helper use
-- `src/difftotweet/providers/__init__.py`: Public provider factory that returns the configured provider implementation
-- `src/difftotweet/providers/base.py`: Abstract provider contract and shared provider error type
-- `src/difftotweet/providers/openai_provider.py`: OpenAI chat-completions implementation that parses a JSON `tweets` array and validates the count against `config.num_candidates`
-- `src/difftotweet/config/__init__.py`: Public config API exports
-- `src/difftotweet/config/config_schema.py`: Pydantic v2 schema for non-secret YAML config, including structured project fields, `num_candidates`, git lookback, opt-in README truncation, prompt budget, and diff ignore patterns
-- `src/difftotweet/config/load_config.py`: YAML reader and merged runtime config loader that carries structured project fields plus `num_candidates` and performs provider-specific validation
-- `src/difftotweet/config/settings.py`: `pydantic-settings` models for provider API keys from env / `.env`
+- `src/diff2tweet/__init__.py`: Top-level package marker
+- `src/diff2tweet/artifacts.py`: Markdown run-artifact writer for reviewed tweet candidates under `<output_folder>/runs/`
+- `src/diff2tweet/cli.py`: Typer CLI entrypoint that auto-discovers repo context, builds prompts from structured project fields plus git/NOTES context, generates the configured number of tweet candidates, prompts for per-candidate approval, and persists both log entries and markdown artifacts
+- `src/diff2tweet/git.py`: Git repo discovery, commit-range resolution, run-log lookup, committed diff/message collection, and HEAD SHA lookup for logging
+- `src/diff2tweet/logs.py`: JSONL run-log writer for generation entries plus append-only approval entries
+- `src/diff2tweet/notes.py`: Repo-root `NOTES.md` discovery that walks up from the current working directory
+- `src/diff2tweet/prompt.py`: Prompt builder that renders a structured `## Project` section from config, then combines commit messages, NOTES, and filtered diff text under the configured context budget while requesting `config.num_candidates` tweets
+- `src/diff2tweet/readme.py`: Repo-root `README.md` discovery with configurable truncation for optional helper use
+- `src/diff2tweet/providers/__init__.py`: Public provider factory that returns the configured provider implementation
+- `src/diff2tweet/providers/base.py`: Abstract provider contract and shared provider error type
+- `src/diff2tweet/providers/openai_provider.py`: OpenAI chat-completions implementation that parses a JSON `tweets` array and validates the count against `config.num_candidates`
+- `src/diff2tweet/config/__init__.py`: Public config API exports
+- `src/diff2tweet/config/config_schema.py`: Pydantic v2 schema for non-secret YAML config, including structured project fields, `num_candidates`, git lookback, opt-in README truncation, prompt budget, and diff ignore patterns
+- `src/diff2tweet/config/load_config.py`: YAML reader and merged runtime config loader that carries structured project fields plus `num_candidates` and performs provider-specific validation
+- `src/diff2tweet/config/settings.py`: `pydantic-settings` models for provider API keys from env / `.env`
 - `tests/test_approval.py`: Approval-entry and markdown-artifact coverage
 - `tests/test_cli.py`: CLI coverage for successful candidate output, approval prompting, artifact creation, and clean error handling
 - `tests/test_config_loader.py`: Config validation coverage for provider API keys, structured project fields, and YAML-loaded `num_candidates`

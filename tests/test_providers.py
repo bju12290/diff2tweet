@@ -6,9 +6,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from difftotweet.config import RuntimeConfig
-from difftotweet.providers import ProviderError, get_provider
-from difftotweet.providers.openai_provider import OpenAIProvider
+from diff2tweet.config import RuntimeConfig
+from diff2tweet.providers import ProviderError, get_provider
+from diff2tweet.providers.anthropic_provider import AnthropicProvider
+from diff2tweet.providers.gemini_provider import GeminiProvider
+from diff2tweet.providers.openai_provider import OpenAIProvider
 
 
 def test_get_provider_returns_openai_provider_for_openai_config():
@@ -17,11 +19,16 @@ def test_get_provider_returns_openai_provider_for_openai_config():
     assert isinstance(provider, OpenAIProvider)
 
 
-def test_get_provider_raises_for_unimplemented_provider():
-    config = _runtime_config(provider="anthropic")
+def test_get_provider_returns_anthropic_provider_for_anthropic_config():
+    provider = get_provider(_runtime_config(provider="anthropic"))
 
-    with pytest.raises(ProviderError, match="not implemented"):
-        get_provider(config)
+    assert isinstance(provider, AnthropicProvider)
+
+
+def test_get_provider_returns_gemini_provider_for_gemini_config():
+    provider = get_provider(_runtime_config(provider="gemini"))
+
+    assert isinstance(provider, GeminiProvider)
 
 
 def test_openai_provider_returns_one_tweet_for_single_candidate(monkeypatch):
@@ -128,6 +135,7 @@ def _runtime_config(*, provider: str = "openai", num_candidates: int = 1) -> Run
         output_folder=Path(".diff2tweet"),
         auto_tweet=False,
         provider_api_key="test-key",
-        openai_api_key="test-key",
+        openai_api_key="test-key" if provider == "openai" else None,
         anthropic_api_key="test-key" if provider == "anthropic" else None,
+        gemini_api_key="test-key" if provider == "gemini" else None,
     )

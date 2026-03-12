@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from difftotweet.config import RuntimeConfig
+from diff2tweet.config import RuntimeConfig
 
 from .base import BaseProvider, ProviderError
 

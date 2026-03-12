@@ -13,7 +13,7 @@ Real-world testing in the developer's own projects to validate prompt quality, c
 - Consider documenting current prompt filtering behavior in `docs/config.md` once heuristics stabilize from real-world use
 
 ## Current Architecture
-Implemented the full reviewed generation flow under `src/difftotweet/`:
+Implemented the full reviewed generation flow under `src/diff2tweet/`:
 - `config/config_schema.py` validates non-secret YAML config with Pydantic v2, including `num_candidates` (default 1), `commit_subject_min_chars` (default 20), `readme_max_chars` (default 0), `context_max_chars`, `diff_ignore_patterns`, and the six structured project context fields
 - `config/settings.py` loads provider API keys from `.env` / environment via `pydantic-settings`
 - `config/load_config.py` reads YAML, validates it, merges env settings, and returns a typed runtime config with provider-specific key validation

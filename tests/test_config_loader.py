@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from difftotweet.config import load_config
+from diff2tweet.config import load_config
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"

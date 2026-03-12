@@ -5,8 +5,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 
-from difftotweet.config import RuntimeConfig
-from difftotweet.git import GitContext
+from diff2tweet.config import RuntimeConfig
+from diff2tweet.git import GitContext
 
 
 @dataclass

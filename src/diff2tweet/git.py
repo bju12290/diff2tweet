@@ -5,7 +5,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from difftotweet.config import RuntimeConfig
+from diff2tweet.config import RuntimeConfig
 
 
 _RUN_LOG_NAME = "run_log.jsonl"

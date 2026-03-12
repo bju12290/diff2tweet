@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from difftotweet.config import RuntimeConfig
-from difftotweet.config.config_schema import DiffToTweetConfig
-from difftotweet.git import GitContext
-from difftotweet.prompt import _truncate_doc_section, build_prompt
+from diff2tweet.config import RuntimeConfig
+from diff2tweet.config.config_schema import DiffToTweetConfig
+from diff2tweet.git import GitContext
+from diff2tweet.prompt import _truncate_doc_section, build_prompt
 
 
 def test_build_prompt_orders_context_by_priority_and_filters_diff_noise():

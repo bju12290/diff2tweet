@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from difftotweet.config import RuntimeConfig
-from difftotweet.git import GitDiscoveryError, discover_git_context
-from difftotweet.notes import discover_notes
+from diff2tweet.config import RuntimeConfig
+from diff2tweet.git import GitDiscoveryError, discover_git_context
+from diff2tweet.notes import discover_notes
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from difftotweet.config import RuntimeConfig
+from diff2tweet.config import RuntimeConfig
 
 
 class ProviderError(RuntimeError):

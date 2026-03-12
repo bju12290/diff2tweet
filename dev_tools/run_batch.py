@@ -24,17 +24,17 @@ from typing import Any
 
 import yaml
 
-# Make src/difftotweet importable without installing the package
+# Make src/diff2tweet importable without installing the package
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from pydantic import SecretStr
 
-from difftotweet.config.config_schema import DiffToTweetConfig
-from difftotweet.config.load_config import RuntimeConfig
-from difftotweet.git import GitDiscoveryError, discover_git_context
-from difftotweet.notes import discover_notes
-from difftotweet.prompt import FilterDiagnostics, build_prompt_with_diagnostics
+from diff2tweet.config.config_schema import DiffToTweetConfig
+from diff2tweet.config.load_config import RuntimeConfig
+from diff2tweet.git import GitDiscoveryError, discover_git_context
+from diff2tweet.notes import discover_notes
+from diff2tweet.prompt import FilterDiagnostics, build_prompt_with_diagnostics
 
 REPOS_FILE = Path(__file__).parent / "repos.yaml"
 SCRATCH_DIR = Path(__file__).parent / "scratch"

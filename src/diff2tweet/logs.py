@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from difftotweet.git import GitContext, get_head_sha
+from diff2tweet.git import GitContext, get_head_sha
 
 
 class LogWriteError(RuntimeError):

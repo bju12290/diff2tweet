@@ -8,7 +8,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from difftotweet.cli import app
+from diff2tweet.cli import app
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"
@@ -66,8 +66,8 @@ auto_tweet: true
         )
 
         approvals = iter([True, True, True])
-        monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
-        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
+        monkeypatch.setattr("diff2tweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("diff2tweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
         monkeypatch.chdir(nested_dir)
         result = _runner.invoke(app, [])
 
@@ -116,8 +116,8 @@ auto_tweet: true
         )
 
         approvals = iter([True, False, True])
-        monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
-        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
+        monkeypatch.setattr("diff2tweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("diff2tweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
         monkeypatch.chdir(repo_dir)
         result = _runner.invoke(app, [])
 
@@ -159,8 +159,8 @@ auto_tweet: true
         )
 
         approvals = iter([False, False, False])
-        monkeypatch.setattr("difftotweet.cli.get_provider", lambda config: _FakeProvider())
-        monkeypatch.setattr("difftotweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
+        monkeypatch.setattr("diff2tweet.cli.get_provider", lambda config: _FakeProvider())
+        monkeypatch.setattr("diff2tweet.cli.typer.confirm", lambda *args, **kwargs: next(approvals))
         monkeypatch.chdir(repo_dir)
         result = _runner.invoke(app, [])
 

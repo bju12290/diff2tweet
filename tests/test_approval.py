@@ -5,8 +5,8 @@ import shutil
 import uuid
 from pathlib import Path
 
-from difftotweet.artifacts import write_markdown
-from difftotweet.logs import write_approval_entry
+from diff2tweet.artifacts import write_markdown
+from diff2tweet.logs import write_approval_entry
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"

@@ -5,8 +5,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from difftotweet.config import RuntimeConfig
-from difftotweet.readme import discover_readme
+from diff2tweet.config import RuntimeConfig
+from diff2tweet.readme import discover_readme
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"

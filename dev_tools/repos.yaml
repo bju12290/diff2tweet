@@ -4,7 +4,7 @@
 # Subsequent runs do a fast-forward pull so clones stay current.
 #
 # Supported per-repo config overrides: any field from DiffToTweetConfig
-# (see src/difftotweet/config/config_schema.py).
+# (see src/diff2tweet/config/config_schema.py).
 # Most useful: lookback_commits, diff_ignore_patterns, commit_subject_min_chars, context_max_chars
 #
 # The project fields (project_name, project_summary, etc.) from the root

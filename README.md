@@ -8,12 +8,22 @@
 
 ## Install
 
-Install from source:
+```bash
+pip install diff2tweet
+```
+
+For Anthropic or Gemini providers, install the extras you need:
 
 ```bash
-git clone https://github.com/bju12290/difftotweet.git
-cd difftotweet
-pip install -e .
+pip install 'diff2tweet[anthropic]'   # Claude
+pip install 'diff2tweet[gemini]'      # Gemini
+pip install 'diff2tweet[all-providers]'  # everything
+```
+
+Verify the install:
+
+```bash
+diff2tweet --help
 ```
 
 ---
@@ -26,8 +36,11 @@ Create a `.env` file in your repo root (or export the variable):
 
 ```
 OPENAI_API_KEY=sk-...
-# or ANTHROPIC_API_KEY, GEMINI_API_KEY
+# ANTHROPIC_API_KEY=sk-ant-...
+# GEMINI_API_KEY=...
 ```
+
+All three providers are supported. Based on testing with `gpt-5.1`, `claude-sonnet-4-6`, and `gemini-2.5-flash-lite-preview`, Claude produced the best output quality. OpenAI was solid. Gemini struggled with context grounding. Your mileage may vary by model.
 
 **2. Add a config file**
 
@@ -44,7 +57,7 @@ project_stage: prototype  # prototype | beta | launched
 project_tone: technical   # technical | founder | casual
 ```
 
-A full annotated example is at [`diff2tweet.yaml`](./diff2tweet.yaml) in this repo.
+A full annotated example is at [`diff2tweet.yaml`](https://github.com/bju12290/diff2tweet/blob/master/diff2tweet.yaml) in the repo.
 
 ---
 

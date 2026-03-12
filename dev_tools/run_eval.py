@@ -35,12 +35,12 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from pydantic import SecretStr
 
-from difftotweet.config.config_schema import DiffToTweetConfig
-from difftotweet.config.load_config import RuntimeConfig, load_config
-from difftotweet.git import GitDiscoveryError, discover_git_context
-from difftotweet.notes import discover_notes
-from difftotweet.prompt import build_prompt_with_diagnostics
-from difftotweet.providers import get_provider
+from diff2tweet.config.config_schema import DiffToTweetConfig, LlmProvider
+from diff2tweet.config.load_config import RuntimeConfig, load_config
+from diff2tweet.git import GitDiscoveryError, discover_git_context
+from diff2tweet.notes import discover_notes
+from diff2tweet.prompt import build_prompt_with_diagnostics
+from diff2tweet.providers import get_provider
 
 REPOS_FILE = Path(__file__).parent / "repos.yaml"
 SCRATCH_DIR = Path(__file__).parent / "scratch"
@@ -107,7 +107,7 @@ def main() -> None:
 
     openai_api_key = base_runtime_config.openai_api_key
     if not openai_api_key:
-        print("ERROR: OPENAI_API_KEY is required for eval runs.")
+        print("ERROR: OPENAI_API_KEY is required for eval runs (used by the critic).")
         sys.exit(1)
 
     print(f"Running eval against {len(repos)} repos (generator: {base_runtime_config.model}, critic: {CRITIC_MODEL})...")
@@ -122,7 +122,13 @@ def main() -> None:
 
         try:
             repo_path = _ensure_repo(url, name)
-            config = _build_eval_config(base_yaml_config, config_overrides, openai_api_key)
+            config = _build_eval_config(
+                base_yaml_config,
+                config_overrides,
+                openai_api_key=base_runtime_config.openai_api_key,
+                anthropic_api_key=base_runtime_config.anthropic_api_key,
+                gemini_api_key=base_runtime_config.gemini_api_key,
+            )
             git_context = discover_git_context(config, cwd=repo_path)
             notes_text = _discover_notes_safe(repo_path)
             prompt, diagnostics = build_prompt_with_diagnostics(config, git_context, notes_text)
@@ -233,7 +239,9 @@ def _repo_name_from_url(url: str) -> str:
 def _build_eval_config(
     base: DiffToTweetConfig,
     overrides: dict[str, Any],
-    openai_api_key: SecretStr,
+    openai_api_key: SecretStr | None,
+    anthropic_api_key: SecretStr | None,
+    gemini_api_key: SecretStr | None,
 ) -> RuntimeConfig:
     merged = base.model_dump()
     known_fields = set(DiffToTweetConfig.model_fields.keys())
@@ -250,12 +258,24 @@ def _build_eval_config(
     merged["project_name"] = ""
     merged["project_summary"] = ""
 
+    _KEY_MAP: dict[LlmProvider, SecretStr | None] = {
+        LlmProvider.OPENAI: openai_api_key,
+        LlmProvider.ANTHROPIC: anthropic_api_key,
+        LlmProvider.GEMINI: gemini_api_key,
+    }
+    provider = base.provider
+    provider_api_key = _KEY_MAP.get(provider)
+    if not provider_api_key:
+        raise RuntimeError(
+            f"Generator provider '{provider}' requires a corresponding API key in .env"
+        )
+
     return RuntimeConfig.model_construct(
         **merged,
-        provider_api_key=openai_api_key,
+        provider_api_key=provider_api_key,
         openai_api_key=openai_api_key,
-        anthropic_api_key=None,
-        gemini_api_key=None,
+        anthropic_api_key=anthropic_api_key,
+        gemini_api_key=gemini_api_key,
     )
 
 

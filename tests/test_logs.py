@@ -6,8 +6,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from difftotweet.git import GitContext
-from difftotweet.logs import write_run_entry
+from diff2tweet.git import GitContext
+from diff2tweet.logs import write_run_entry
 
 
 _TEST_TEMP_ROOT = Path("tests") / ".tmp"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from difftotweet.config import RuntimeConfig
+from diff2tweet.config import RuntimeConfig
 
 from .git import find_repo_root
 

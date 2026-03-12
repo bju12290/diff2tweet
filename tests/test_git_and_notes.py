@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from diff2tweet.config import RuntimeConfig
-from diff2tweet.git import GitDiscoveryError, discover_git_context
+from diff2tweet.git import GitDiscoveryError, InsufficientCommitsError, discover_git_context
 from diff2tweet.notes import discover_notes
 
 
@@ -82,6 +82,25 @@ def test_discover_git_context_raises_clear_error_when_range_is_empty():
 
         with pytest.raises(GitDiscoveryError, match="No committed changes were found"):
             discover_git_context(_runtime_config(), cwd=repo_dir)
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_discover_git_context_raises_insufficient_commits_error_when_repo_has_too_few_commits():
+    case_dir = _TEST_TEMP_ROOT / f"git-insufficient-{uuid.uuid4().hex}"
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "one.txt", "one\n", "Commit one")
+        _commit_file(repo_dir, "two.txt", "two\n", "Commit two")
+
+        with pytest.raises(InsufficientCommitsError) as exc_info:
+            discover_git_context(_runtime_config(lookback_commits=5), cwd=repo_dir)
+
+        assert exc_info.value.requested == 5
+        assert exc_info.value.available == 1
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 

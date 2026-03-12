@@ -15,6 +15,17 @@ class GitDiscoveryError(RuntimeError):
     """Raised when git context discovery cannot produce usable committed changes."""
 
 
+class InsufficientCommitsError(GitDiscoveryError):
+    """Raised when the repo has fewer commits than lookback_commits."""
+
+    def __init__(self, requested: int, available: int) -> None:
+        self.requested = requested
+        self.available = available
+        super().__init__(
+            f"Only {available} commit(s) available, but lookback_commits is set to {requested}."
+        )
+
+
 @dataclass(frozen=True)
 class GitContext:
     """Committed git data used to build the tweet generation prompt."""
@@ -102,12 +113,19 @@ def _resolve_lookback_range(repo_root: Path, lookback_commits: int) -> str:
     try:
         base_sha = _run_git_command(repo_root, "rev-parse", f"HEAD~{lookback_commits}").strip()
     except GitDiscoveryError as exc:
-        raise GitDiscoveryError(
-            "No committed changes were found for the requested lookback range. "
-            "The repository may be empty or have fewer commits than lookback_commits."
-        ) from exc
+        available = _count_commits(repo_root)
+        raise InsufficientCommitsError(lookback_commits, available) from exc
 
     return f"{base_sha}..HEAD"
+
+
+def _count_commits(repo_root: Path) -> int:
+    """Return the max valid lookback depth (total commits minus one, since HEAD~total does not exist)."""
+    try:
+        output = _run_git_command(repo_root, "rev-list", "--count", "HEAD").strip()
+        return max(int(output) - 1, 0)
+    except (GitDiscoveryError, ValueError):
+        return 0
 
 
 def _read_commit_messages(repo_root: Path, commit_range: str) -> list[str]:

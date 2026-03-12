@@ -24,7 +24,7 @@ Implemented the full reviewed generation flow under `src/diff2tweet/`:
 - `providers/base.py` defines the provider contract, `providers/__init__.py` dispatches by `config.provider`, and `providers/openai_provider.py` implements OpenAI chat-completions with one independent API call per candidate (loop of `num_candidates` calls), each returning a single `{"tweet": "..."}` JSON object
 - `logs.py` appends successful generation runs to `<output_folder>/run_log.jsonl`, returns the generation timestamp for downstream linking, and appends approval entries that reference the generation record
 - `artifacts.py` writes one markdown artifact per reviewed run to `<output_folder>/runs/` with commit range, timestamps, candidates, and approval status
-- `cli.py` is the Typer entrypoint; it finds `<repo-root>/diff2tweet.yaml`, loads config, gathers git and `NOTES.md` context, builds the prompt, generates the configured number of tweet candidates, prints them, prompts `typer.confirm()` for each candidate, and persists both append-only log entries and a markdown review artifact with clean exit-code-1 errors for user-facing failures
+- `cli.py` is the Typer entrypoint; it finds `<repo-root>/diff2tweet.yaml`, loads config, gathers git and `NOTES.md` context, builds the prompt, generates the configured number of tweet candidates, prints them, prompts `typer.confirm()` for each candidate, and persists both append-only log entries and a markdown review artifact with clean exit-code-1 errors for user-facing failures; exposes `--force` to skip the insufficient-commits prompt
 - `tests/test_approval.py`, `tests/test_cli.py`, `tests/test_config_loader.py`, `tests/test_git_and_notes.py`, `tests/test_readme.py`, `tests/test_prompt.py`, `tests/test_providers.py`, and `tests/test_logs.py` cover the implemented flow
 
 ## Generator Prompt
@@ -68,7 +68,7 @@ The prompt asks for `{"tweet": "..."}` — one tweet per call. Candidate variety
 - Output folder (`.diff2tweet/`) is gitignored by default; users opt in to committing logs
 - Config implementation uses Pydantic v2 `BaseModel` for YAML, `pydantic-settings` `BaseSettings` for secrets, and a merged runtime config object for CLI consumption
 - Provider-specific validation happens at load time: the selected provider must have its corresponding API key in env / `.env`
-- Git discovery reads committed changes only, uses `lookback_commits` on first run, and raises a clear error on empty ranges
+- Git discovery reads committed changes only, uses `lookback_commits` on first run, and raises a clear error on empty ranges; raises `InsufficientCommitsError` (subclass of `GitDiscoveryError`) when the repo has fewer commits than `lookback_commits`, prompting the user interactively (or bypassed with `--force`)
 - Notes discovery walks up to the repo root and returns `None` when `NOTES.md` is absent
 - Typer is the CLI framework
 - `README.md` context is opt-in (`readme_max_chars` defaults to 0); structured project fields are the preferred prompt-framing path

@@ -6,6 +6,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
+import pytest
+
 from typer.testing import CliRunner
 
 from diff2tweet.cli import app
@@ -176,6 +178,46 @@ auto_tweet: true
         assert "### Tweet 1 (denied)" in artifact_contents
         assert "### Tweet 2 (denied)" in artifact_contents
         assert "### Tweet 3 (denied)" in artifact_contents
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+@pytest.mark.parametrize("cli_args,confirm_return,expect_candidates", [
+    (["--force"], None, True),
+    ([], False, False),
+    ([], True, True),
+])
+def test_cli_handles_insufficient_commits(monkeypatch, cli_args, confirm_return, expect_candidates):
+    case_dir = (_TEST_TEMP_ROOT / f"cli-insufficient-{uuid.uuid4().hex}").resolve()
+    repo_dir = case_dir / "repo"
+    repo_dir.mkdir(parents=True, exist_ok=False)
+
+    try:
+        _init_git_repo(repo_dir)
+        _commit_file(repo_dir, "app.py", "print('one')\n", "Add app")
+        _commit_file(repo_dir, "app.py", "print('two')\n", "Update app")
+
+        (repo_dir / ".env").write_text("OPENAI_API_KEY=test-key\n", encoding="utf-8")
+        (repo_dir / "diff2tweet.yaml").write_text(
+            """
+provider: openai
+model: gpt-4.1-mini
+lookback_commits: 10
+output_folder: .diff2tweet
+auto_tweet: false
+""".strip(),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr("diff2tweet.cli.get_provider", lambda config: _FakeProvider())
+        if confirm_return is not None:
+            monkeypatch.setattr("diff2tweet.cli.typer.confirm", lambda *args, **kwargs: confirm_return)
+        monkeypatch.chdir(repo_dir)
+        result = _runner.invoke(app, cli_args)
+
+        assert result.exit_code == 0
+        assert "Only 1 commit(s) available" in result.output
+        assert ("diff2tweet candidates" in result.output) == expect_candidates
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
 

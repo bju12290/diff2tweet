@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from .artifacts import write_markdown
 from .config import load_config
-from .git import GitDiscoveryError, discover_git_context, find_repo_root
+from .git import GitDiscoveryError, InsufficientCommitsError, discover_git_context, find_repo_root
 from .logs import LogWriteError, current_utc_timestamp, write_approval_entry, write_run_entry
 from .notes import discover_notes
 from .prompt import build_prompt
@@ -22,13 +22,32 @@ app = typer.Typer(
 
 
 @app.callback()
-def generate_tweets() -> None:
+def generate_tweets(
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Use available commits without prompting when fewer commits exist than lookback_commits.",
+    ),
+) -> None:
     """Auto-discover repo context, generate tweet candidates, and log the run."""
 
     try:
         repo_root = find_repo_root(Path.cwd())
         config = load_config(repo_root / "diff2tweet.yaml")
-        git_context = discover_git_context(config, cwd=repo_root)
+        try:
+            git_context = discover_git_context(config, cwd=repo_root)
+        except InsufficientCommitsError as exc:
+            typer.echo(
+                f"Only {exc.available} commit(s) available, but lookback_commits is set to {exc.requested}."
+            )
+            if not force and not typer.confirm(
+                f"Use the last {exc.available} commit(s) to generate a tweet anyway?"
+            ):
+                return
+            git_context = discover_git_context(
+                config.model_copy(update={"lookback_commits": exc.available}),
+                cwd=repo_root,
+            )
         notes_text = discover_notes(cwd=repo_root)
         prompt_text = build_prompt(config, git_context, notes_text)
         tweets = get_provider(config).generate_tweets(prompt_text, config)

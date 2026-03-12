@@ -36,7 +36,7 @@ def test_write_approval_entry_appends_jsonl_record():
         shutil.rmtree(case_dir, ignore_errors=True)
 
 
-def test_write_markdown_writes_review_artifact():
+def test_write_markdown_writes_review_artifact_with_approvals():
     case_dir = _TEST_TEMP_ROOT / f"approval-md-{uuid.uuid4().hex}"
     output_dir = case_dir / ".diff2tweet"
 
@@ -57,6 +57,32 @@ def test_write_markdown_writes_review_artifact():
         assert "- Commit range: abc123..HEAD" in contents
         assert "### Tweet 1 (approved)" in contents
         assert "### Tweet 2 (denied)" in contents
+        assert "three" in contents
+    finally:
+        shutil.rmtree(case_dir, ignore_errors=True)
+
+
+def test_write_markdown_writes_artifact_without_approval_labels():
+    case_dir = _TEST_TEMP_ROOT / f"approval-md-none-{uuid.uuid4().hex}"
+    output_dir = case_dir / ".diff2tweet"
+
+    try:
+        artifact_path = write_markdown(
+            output_dir,
+            "2026-03-08T12:00:00+00:00",
+            "abc123..HEAD",
+            ["one", "two", "three"],
+            None,
+            None,
+        )
+        contents = artifact_path.read_text(encoding="utf-8")
+
+        assert "- Generation timestamp: 2026-03-08T12:00:00+00:00" in contents
+        assert "- Approval timestamp:" not in contents
+        assert "### Tweet 1\n" in contents
+        assert "### Tweet 2\n" in contents
+        assert "(approved)" not in contents
+        assert "(denied)" not in contents
         assert "three" in contents
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)

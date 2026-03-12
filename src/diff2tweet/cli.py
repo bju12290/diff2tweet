@@ -59,15 +59,16 @@ def generate_tweets(
 
     typer.echo(_format_candidates_output(git_context.commit_range, tweets))
     approvals = _prompt_for_approvals(len(tweets), config.auto_tweet)
-    approval_timestamp = current_utc_timestamp()
+    approval_timestamp = current_utc_timestamp() if approvals is not None else None
 
     try:
-        write_approval_entry(
-            output_folder,
-            run_entry.generation_timestamp,
-            approvals,
-            approval_timestamp,
-        )
+        if approvals is not None:
+            write_approval_entry(
+                output_folder,
+                run_entry.generation_timestamp,
+                approvals,
+                approval_timestamp,
+            )
         write_markdown(
             output_folder,
             run_entry.generation_timestamp,
@@ -91,13 +92,10 @@ def _format_candidates_output(commit_range: str, tweets: list[str]) -> str:
     return "\n".join(lines)
 
 
-def _prompt_for_approvals(tweet_count: int, auto_tweet: bool) -> dict[int, bool]:
-    approvals: dict[int, bool] = {}
-    for index in range(1, tweet_count + 1):
-        if auto_tweet:
-            approvals[index] = typer.confirm(f"Approve tweet {index}?", prompt_suffix=" [y/n]: ")
-        else:
-            # Temporarily auto-approve all tweets when not auto-tweeting.
-            # Later we can use this for auto-tweet confirmation.
-            approvals[index] = True
-    return approvals
+def _prompt_for_approvals(tweet_count: int, auto_tweet: bool) -> dict[int, bool] | None:
+    if not auto_tweet:
+        return None
+    return {
+        index: typer.confirm(f"Approve tweet {index}?", prompt_suffix=" [y/n]: ")
+        for index in range(1, tweet_count + 1)
+    }

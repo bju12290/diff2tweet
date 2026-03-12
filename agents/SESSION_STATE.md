@@ -10,7 +10,6 @@ Real-world testing in the developer's own projects to validate prompt quality, c
 - Test in real projects and note where commit filtering over/under-fires on actual commit styles
 - Observe how much NOTES.md moves output quality in practice (untested in eval)
 - Consider surfacing the critic score to the user in CLI output so they can make an informed approval decision
-- Consider documenting current prompt filtering behavior in `docs/config.md` once heuristics stabilize from real-world use
 
 ## Current Architecture
 Implemented the full reviewed generation flow under `src/diff2tweet/`:
@@ -23,7 +22,7 @@ Implemented the full reviewed generation flow under `src/diff2tweet/`:
 - `prompt.py` assembles the final prompt with a tuned `_BASE_PROMPT` (see Generator Prompt below), renders structured project fields as a `## Project` section, filters commit messages by useful subject lines using the configurable `commit_subject_min_chars` threshold plus hard-coded junk-subject rules, filters noisy diff sections with filename and content heuristics, reformats diffs to compact basename headers, and applies the `context_max_chars` budget in priority order: project fields -> NOTES -> commit messages -> filtered diff remainder
 - `providers/base.py` defines the provider contract, `providers/__init__.py` dispatches by `config.provider`, and `providers/openai_provider.py` implements OpenAI chat-completions with one independent API call per candidate (loop of `num_candidates` calls), each returning a single `{"tweet": "..."}` JSON object
 - `logs.py` appends successful generation runs to `<output_folder>/run_log.jsonl`, returns the generation timestamp for downstream linking, and appends approval entries that reference the generation record
-- `artifacts.py` writes one markdown artifact per reviewed run to `<output_folder>/runs/` with commit range, timestamps, candidates, and approval status
+- `artifacts.py` writes one markdown artifact per run to `<output_folder>/runs/` with commit range, timestamps, and candidates; approval status labels and approval timestamp are only included when `auto_tweet` is enabled
 - `cli.py` is the Typer entrypoint; it finds `<repo-root>/diff2tweet.yaml`, loads config, gathers git and `NOTES.md` context, builds the prompt, generates the configured number of tweet candidates, prints them, prompts `typer.confirm()` for each candidate, and persists both append-only log entries and a markdown review artifact with clean exit-code-1 errors for user-facing failures; exposes `--force` to skip the insufficient-commits prompt
 - `tests/test_approval.py`, `tests/test_cli.py`, `tests/test_config_loader.py`, `tests/test_git_and_notes.py`, `tests/test_readme.py`, `tests/test_prompt.py`, `tests/test_providers.py`, and `tests/test_logs.py` cover the implemented flow
 
@@ -58,7 +57,6 @@ The prompt asks for `{"tweet": "..."}` — one tweet per call. Candidate variety
 - `last_processed_sha` advances at generation time, not approval time
 
 ## Open Problems
-- OpenAI is the only implemented provider; Anthropic and Gemini remain config-valid but runtime-unimplemented
 - Accuracy criterion in eval scores against a 3000-char diff excerpt; truncation causes some legitimate claims to score lower than deserved — increasing excerpt size to 6000 chars may improve signal
 - Authenticity ceiling (~7.5) likely requires few-shot voice examples or user-supplied tone examples to break through with prompting alone
 
@@ -81,9 +79,11 @@ The prompt asks for `{"tweet": "..."}` — one tweet per call. Candidate variety
 - Diff noise filtering in `prompt.py` via `diff_ignore_patterns` config list; filtering is a prompt-building concern, not a git concern
 - Additional hard-filters: pure whole-file deletions dropped; auto-generated content dropped; diff headers reformatted to compact `# basename` separators
 - Successful runs persisted to `<output_folder>/run_log.jsonl`; `last_processed_sha` advances at generation time
-- Approval is sequential y/n per candidate; statuses appended as a second JSONL entry referencing the generation timestamp
-- Markdown review artifacts always written after approval collection, even if every candidate is denied
+- Approval/denial is only collected and persisted when `auto_tweet` is enabled; when disabled, no approval entry is written to the JSONL log and no status labels appear in the markdown artifact
+- Approval is sequential y/n per candidate (auto_tweet=true); statuses appended as a second JSONL entry referencing the generation timestamp
+- Markdown review artifacts always written after generation, even when auto_tweet is disabled
 - Pre-generation tweetability gate was considered and rejected: tool should always produce output and let the user decide; a weak tweet is better UX than a token spend with no output
+- Future intent: the approval/denial prompt will serve as the auto-tweet yes/no confirmation once X posting is wired up
 
 ## Next Step
 Real-world testing in the developer's own projects.
